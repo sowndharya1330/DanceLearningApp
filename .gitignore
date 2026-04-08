@@ -1,0 +1,9 @@
+node_modules
+.env
+dist
+.vscode
+.DS_Store
+*.local
+backend/node_modules
+backend/database.sqlite
+startup_log.txt
