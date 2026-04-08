@@ -4,6 +4,7 @@ import { CourseDetail } from "./pages/CourseDetail";
 import { LessonVideo } from "./pages/LessonVideo";
 import { ProgressPage } from "./pages/Progress";
 import { Layout } from "./components/Layout";
+import { Auth } from "./pages/Auth";
 
 export const router = createBrowserRouter([
   {
@@ -11,6 +12,7 @@ export const router = createBrowserRouter([
     Component: Layout,
     children: [
       { index: true, Component: Home },
+      { path: "login", Component: Auth },
       { path: "course/:courseId", Component: CourseDetail },
       { path: "lesson/:lessonId", Component: LessonVideo },
       { path: "progress", Component: ProgressPage },

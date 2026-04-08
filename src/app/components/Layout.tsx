@@ -1,10 +1,24 @@
-import { Outlet, Link, useLocation } from "react-router";
-import { Home, TrendingUp, Menu } from "lucide-react";
+import { Outlet, Link, useLocation, useNavigate } from "react-router";
+import { Home, TrendingUp, Menu, LogIn, LogOut, User } from "lucide-react";
 import { Button } from "./ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
+import { isAuthenticated, removeToken } from "../utils/auth";
+import { useState, useEffect } from "react";
 
 export function Layout() {
   const location = useLocation();
+  const navigate = useNavigate();
+  const [isAuth, setIsAuth] = useState(false);
+
+  useEffect(() => {
+    setIsAuth(isAuthenticated());
+  }, [location.pathname]);
+
+  const handleLogout = () => {
+    removeToken();
+    setIsAuth(false);
+    navigate("/");
+  };
 
   const navigation = [
     { name: "Home", href: "/", icon: Home },
@@ -37,22 +51,46 @@ export function Layout() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <Link to="/" className="flex items-center space-x-2">
-              <div className="bg-gradient-to-br from-orange-600 to-pink-600 text-white w-10 h-10 rounded-lg flex items-center justify-center font-bold text-xl">
+              <div className="bg-gradient-to-br from-[#7a1c1c] to-[#4a1111] text-[#f5f5dc] w-10 h-10 rounded-lg flex items-center justify-center font-bold text-xl">
                 भ
               </div>
-              <span className="text-xl font-bold bg-gradient-to-r from-orange-600 to-pink-600 bg-clip-text text-transparent">
+              <span className="text-xl font-bold bg-gradient-to-r from-[#7a1c1c] to-[#4a1111] bg-clip-text text-transparent hidden sm:inline-block">
                 Bharatanatyam Guru
               </span>
             </Link>
 
             {/* Desktop Navigation */}
-            <nav className="hidden md:flex space-x-2">
+            <nav className="hidden md:flex space-x-2 items-center">
               <NavLinks />
+              <div className="h-6 w-px bg-slate-200 mx-2 text-transparent" aria-hidden="true" />
+              {isAuth ? (
+                <Button variant="ghost" className="text-[#7a1c1c]" onClick={handleLogout}>
+                  <LogOut className="mr-2 h-4 w-4" /> Logout
+                </Button>
+              ) : (
+                <Link to="/login">
+                  <Button className="bg-[#7a1c1c] hover:bg-[#5a1515] text-white">
+                    <LogIn className="mr-2 h-4 w-4" /> Login
+                  </Button>
+                </Link>
+              )}
             </nav>
 
             {/* Mobile Menu */}
-            <Sheet>
-              <SheetTrigger asChild className="md:hidden">
+            <div className="flex items-center md:hidden gap-2">
+              {isAuth ? (
+                <Button variant="ghost" size="icon" className="text-[#7a1c1c]" onClick={handleLogout}>
+                  <LogOut className="h-5 w-5" />
+                </Button>
+              ) : (
+                <Link to="/login">
+                  <Button variant="ghost" size="icon" className="text-[#7a1c1c]">
+                    <User className="h-5 w-5" />
+                  </Button>
+                </Link>
+              )}
+              <Sheet>
+                <SheetTrigger asChild>
                 <Button variant="ghost" size="icon">
                   <Menu className="h-6 w-6" />
                 </Button>
@@ -64,6 +102,7 @@ export function Layout() {
               </SheetContent>
             </Sheet>
           </div>
+        </div>
         </div>
       </header>
 
