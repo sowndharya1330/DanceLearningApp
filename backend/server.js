@@ -15,8 +15,19 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 const JWT_SECRET = process.env.JWT_SECRET || 'bharatanatyam_secret_key_123';
 
-app.use(cors());
+// Explicitly allow all origins or specifically your Vercel domain
+app.use(cors({
+  origin: '*', // Allow all origins during development/testing
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
 app.use(express.json());
+
+// Health Check route to verify the server is up
+app.get('/', (req, res) => {
+  res.json({ message: 'Dance App Backend is running!', status: 'OK' });
+});
 
 // Register API
 app.post('/api/register', async (req, res) => {
@@ -27,17 +38,14 @@ app.post('/api/register', async (req, res) => {
       return res.status(400).json({ error: 'All fields are required' });
     }
 
-    // Check if user already exists
     const userExists = await User.findOne({ email });
     if (userExists) {
       return res.status(400).json({ error: 'Email already exists' });
     }
 
-    // Hash password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Create user
     const user = await User.create({
       name,
       email,
@@ -45,24 +53,18 @@ app.post('/api/register', async (req, res) => {
     });
 
     if (user) {
-      // Create token
       const token = jwt.sign({ id: user._id, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
-
       res.status(201).json({ 
         message: 'User registered successfully', 
         token,
-        user: {
-          id: user._id,
-          name: user.name,
-          email: user.email
-        }
+        user: { id: user._id, name: user.name, email: user.email }
       });
     } else {
       res.status(400).json({ error: 'Invalid user data' });
     }
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Server error' });
+    console.error('Register Error:', err.message);
+    res.status(500).json({ error: 'Server error: ' + err.message });
   }
 });
 
@@ -75,36 +77,29 @@ app.post('/api/login', async (req, res) => {
       return res.status(400).json({ error: 'Email and password are required' });
     }
 
-    // Find user
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(400).json({ error: 'Invalid credentials' });
     }
 
-    // Check password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ error: 'Invalid credentials' });
     }
 
-    // Create token
     const token = jwt.sign({ id: user._id, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
 
     res.json({ 
       message: 'Logged in successfully', 
       token, 
-      user: { 
-        id: user._id, 
-        name: user.name, 
-        email: user.email 
-      } 
+      user: { id: user._id, name: user.name, email: user.email } 
     });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Server error' });
+    console.error('Login Error:', err.message);
+    res.status(500).json({ error: 'Server error: ' + err.message });
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`Backend server running on http://localhost:${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Backend server running on http://0.0.0.0:${PORT}`);
 });
